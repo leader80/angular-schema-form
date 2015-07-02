@@ -3,7 +3,8 @@
     "type": "object",
     "required": [
       "name",
-      "shoesizeLeft"
+      "shoesizeLeft",
+      "invitation"
     ],
     "properties": {
       "name": {
@@ -168,7 +169,7 @@
                 {
                   "key": "shoesizeLeft",
                   "feedback": false,
-                  "copyValueTo":["shoesizeRight"]
+                  "copyValueTo": ["shoesizeRight"]
                 },
                 {
                   "key": "shoesizeRight"

@@ -1,0 +1,12 @@
+{
+  "directory": "bower_components/",
+  "analytics": false,
+  "timeout": 10000,
+  "proxy": "",
+  "https-proxy" : "",
+  "registry": {
+    "search": [
+      "http://bower.herokuapp.com"
+    ]
+  }
+}

@@ -7,16 +7,27 @@
   </head>
   <body ng-app="test" class="container" ng-controller="TestCtrl">
 
+
+
   <h3>Demo of custom validators, async validators and parsers</h3>
   <span>Check the source</span>
-  <form name="theForm">
-    <div sf-schema="schema" sf-form="form" sf-model="model"></div>
+
+  <div class="form-group">
+    <select class="form-control" id="selectTest"
+            ng-model="selectedTest"
+            ng-options="obj.name for obj in tests">
+    </select>
+  </div>
+
+  <form name="theForm" ng-submit="submitForm(theForm,modelData)">
+    <div sf-schema="schema" sf-form="form" sf-model="modelData"></div>
     <div>
       The form is <em ng-show="theForm.$pristine">pristine</em><em ng-show="theForm.$dirty">dirty</em>
       and <em ng-show="theForm.$valid">valid</em><em ng-show="!theForm.$valid">invalid</em>.
     </div>
     <div>{{prettyModel}}</div>
   </form>
+
 
   <script type="text/javascript" src="../bower_components/tv4/tv4.js"></script>
   <script type="text/javascript" src="../bower_components/angular/angular.min.js"></script>
@@ -28,9 +39,80 @@
   <script type="text/javascript" src="../dist/bootstrap-decorator.min.js"></script>
 
     <script>
-      angular.module('test', ['schemaForm']).controller('TestCtrl', function($scope, $q, $timeout) {
+      angular.module('test', ['schemaForm']).controller('TestCtrl', function($scope, $q, $timeout,$http, $filter, $log) {
 
-        $scope.schema = {
+        $scope.tests = [
+          { name: "Simple", data: 'data/simple.json' },
+          { name: "Basic JSON Schema Type", data: 'data/types.json' },
+          { name: "Bootstrap Grid", data: 'data/grid.json' },
+          { name: "Complex Key Support", data: 'data/complex-keys.json' },
+          { name: "Array", data: 'data/array.json' },
+          { name: "Tab Array", data: 'data/tabarray.json' },
+          { name: "TitleMap Examples", data: 'data/titlemaps.json' },
+          { name: "Kitchen Sink", data: 'data/sink.json' },
+          { name: "Hack: Conditional required", data: 'data/conditional-required.json' },
+        ];
+
+        $scope.$watch('selectedTest',function(val){
+          if (val && val.data !== undefined) {
+            $log.info("call");
+            $http.get(val.data).then(function(res) {setNewData(res.data);});
+          }
+        });
+
+        var setNewData = function(data) {
+          $scope.schema = data.schema;
+          $scope.form   = data.form;
+          $scope.schemaJson = JSON.stringify($scope.schema,undefined,2);
+          $scope.formJson   = JSON.stringify($scope.form,undefined,2);
+          $scope.modelData = data.model || {};
+
+         //$log.info($filter('json')( $scope.formJson));
+
+        };
+
+        $scope.$watch('schemaJson',function(val,old){
+          if (val && val !== old) {
+            try {
+              $scope.schema = JSON.parse($scope.schemaJson);
+              $scope.itParses = true;
+            } catch (e){
+              $scope.itParses = false;
+            }
+          }
+        });
+
+        $scope.$watch('formJson',function(val,old){
+          if (val && val !== old) {
+            try {
+              $scope.form = JSON.parse($scope.formJson);
+              $scope.itParsesForm = true;
+            } catch (e){
+              $scope.itParsesForm = false;
+            }
+          }
+        });
+
+        $scope.sayNo = function() {
+          alert('Noooooooo');
+        };
+
+        $scope.say = function(msg) {
+          alert(msg);
+        };
+
+        $scope.submitForm = function(form) {
+          // First we broadcast an event so all fields validate themselves
+          $scope.$broadcast('schemaFormValidate');
+          // Then we check if the form is valid
+          if (form.$valid) {
+            alert('You did it!');
+          }
+        };
+
+
+
+       /* $scope.schema = {
             "type": "object",
             "title": "Comment",
             "properties": {
@@ -44,6 +126,7 @@
                 "pattern": "^\\S+@\\S+$",
                 "description": "Email will be used for evil."
               },
+
               "comment": {
                 "title": "Comment",
                 "type": "string"
@@ -87,6 +170,18 @@
               }
             },
             {
+              key: 'email',
+              placeholder: 'Not 2 MY email',
+              ngModel: function(ngModel) {
+                ngModel.$validators.myMail = function(value) {
+                  return value !== 'david.lgj@gmail.com';
+                };
+              },
+              validationMessage: {
+                'myMail': "Thats my mail2!"
+              }
+            },
+            {
               "key": "comment",
               "type": "textarea",
               "placeholder": "Make a comment, write 'damn' and check the model",
@@ -101,14 +196,14 @@
             },
             {
               "type": "submit",
-        	    "style": "btn-info",
+              "style": "btn-info",
               "title": "OK"
             }
-          ];
+          ];*/
 
-          $scope.model = {};
+          $scope.modelData = {};
 
-          $scope.$watch('model', function(value){
+          $scope.$watch('modelData', function(value){
             if (value) {
               $scope.prettyModel = JSON.stringify(value, undefined, 2);
             }
